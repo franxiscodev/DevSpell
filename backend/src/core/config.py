@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     database_pool_size: int = 5
     database_max_overflow: int = 10
 
+    # POSTGRES (variables para Docker)
+    postgres_user: str = "devspell"
+    postgres_password: str = "devspell123"
+    postgres_db: str = "devspell"
+    postgres_port: int = 5433
+
     # Configuración de Pydantic
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -1,6 +1,9 @@
 """
 Modelos Pydantic para el endpoint de análisis.
 """
+from typing import Optional
+from uuid import UUID
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -14,7 +17,8 @@ class FunctionInfo(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     """Request para analizar código."""
-    code: str = Field(..., description="Código Python a analizar", min_length=1)
+    code: str = Field(...,
+                      description="Código Python a analizar", min_length=1)
 
     @field_validator("code")
     @classmethod
@@ -27,10 +31,16 @@ class AnalyzeRequest(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     """Response con métricas del código analizado."""
-    total_lines: int = Field(..., description="Líneas totales incluyendo vacías")
-    code_lines: int = Field(..., description="Líneas de código (sin comentarios ni vacías)")
+    total_lines: int = Field(...,
+                             description="Líneas totales incluyendo vacías")
+    code_lines: int = Field(...,
+                            description="Líneas de código (sin comentarios ni vacías)")
     complexity: int = Field(..., description="Complejidad ciclomática total")
-    num_functions: int = Field(..., description="Número de funciones definidas")
+    num_functions: int = Field(...,
+                               description="Número de funciones definidas")
     num_classes: int = Field(..., description="Número de clases definidas")
     num_imports: int = Field(..., description="Número de imports")
-    functions: list[FunctionInfo] = Field(default_factory=list, description="Lista de funciones detectadas")
+    functions: list[FunctionInfo] = Field(
+        default_factory=list, description="Lista de funciones detectadas")
+    id: Optional[UUID] = Field(
+        None, description="ID del análisis guardado en BD")

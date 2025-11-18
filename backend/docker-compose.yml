@@ -1,27 +1,63 @@
+# =============================================================================
+# DevSpell - Docker Compose
+# =============================================================================
+# Variables de entorno desde .env
+# Uso: docker-compose up -d
+# =============================================================================
+
 services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ---------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
     container_name: devspell-postgres
+    restart: unless-stopped
+    
     environment:
-      POSTGRES_USER: devspell
-      POSTGRES_PASSWORD: devspell123
-      POSTGRES_DB: devspell
+      POSTGRES_USER: ${POSTGRES_USER:-devspell}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?error - Definir POSTGRES_PASSWORD en .env}
+      POSTGRES_DB: ${POSTGRES_DB:-devspell}
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=trust"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    
     ports:
-      - "5433:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
+    
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts:/docker-entrypoint-initdb.d:ro
+    
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U devspell"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-devspell}"]
+      interval: 10s
       timeout: 5s
       retries: 5
+    
     command:
       - "postgres"
       - "-c"
       - "log_connections=on"
       - "-c"
       - "log_statement=all"
+      - "-c"
+      - "timezone=UTC"
+    
+    networks:
+      - devspell-network
 
+# =============================================================================
+# Volumes
+# =============================================================================
 volumes:
   postgres_data:
+    driver: local
+    name: devspell_postgres_data
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  devspell-network:
+    driver: bridge
+    name: devspell_network

@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.core.config import settings
 from src.core.logger import logger
-from src.api.routes import health
+from src.api.routes import health, analyze
 
 
 @asynccontextmanager
@@ -52,6 +52,7 @@ def create_app() -> FastAPI:
 
     # Incluir routers
     app.include_router(health.router, prefix="/api/v1")
+    app.include_router(analyze.router, prefix="/api/v1")
 
     return app
 

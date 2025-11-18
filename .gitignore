@@ -4,3 +4,17 @@ __pycache__/
 .env
 node_modules/
 .DS_Store
+
+# -----------------------------------------------------------------------------
+# IDEs y Editores
+# -----------------------------------------------------------------------------
+# VSCode
+.vscode/
+*.code-workspace
+
+# Claude Code (VSCode extension)
+.claude/
+**/.claude/
+
+# PyCharm
+.idea/

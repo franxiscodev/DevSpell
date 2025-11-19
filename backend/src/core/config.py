@@ -18,31 +18,51 @@ class Settings(BaseSettings):
 
     # CORS - URLs permitidas para acceder a la API
     cors_origins: list[str] = [
-        "http://localhost:3000", "http://localhost:5173"]
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ]
 
-
-    # BASE DE DATOS
-    database_url: str = "postgresql://devspell:devspell123@localhost:5433/devspell"
-    database_pool_size: int = 5
-    database_max_overflow: int = 10
-
-    # POSTGRES (variables para Docker)
+    # PostgreSQL - Campos individuales
     postgres_user: str = "devspell"
-    postgres_password: str = "devspell123"
+    postgres_password: str = "devspell_local_2024"
+    postgres_host: str = "localhost"
+    postgres_port: str = "5433"
     postgres_db: str = "devspell"
-    postgres_port: int = 5433
 
-    # Base de datos
-    database_url: str = "postgresql+psycopg://devspell:devspell123@localhost:5433/devspell"
+    # Database pool
     database_pool_size: int = 5
     database_max_overflow: int = 10
 
+    # Anthropic API
+    anthropic_api_key: str = ""
+
+    # Autenticación JWT
+    secret_key: str
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+
+    @property
+    def database_url(self) -> str:
+        """Construye la URL de conexión a PostgreSQL para asyncpg."""
+        return (
+            f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
+
+    @property
+    def sync_database_url(self) -> str:
+        """URL de conexión síncrona para Alembic (psycopg2)."""
+        return (
+            f"postgresql+psycopg2://{self.postgres_user}:{self.postgres_password}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
 
     # Configuración de Pydantic
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore"  # Permite campos extra del .env sin error
     )
 
 

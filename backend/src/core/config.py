@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     # Anthropic API
     anthropic_api_key: str = ""
 
+    # Autenticación JWT
+    secret_key: str
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+
     @property
     def database_url(self) -> str:
         """Construye la URL de conexión a PostgreSQL para asyncpg."""

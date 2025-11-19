@@ -20,10 +20,23 @@ class Settings(BaseSettings):
     cors_origins: list[str] = [
         "http://localhost:3000", "http://localhost:5173"]
 
+
+    # BASE DE DATOS
+    database_url: str = "postgresql://devspell:devspell123@localhost:5433/devspell"
+    database_pool_size: int = 5
+    database_max_overflow: int = 10
+
+    # POSTGRES (variables para Docker)
+    postgres_user: str = "devspell"
+    postgres_password: str = "devspell123"
+    postgres_db: str = "devspell"
+    postgres_port: int = 5433
+
     # Base de datos
     database_url: str = "postgresql+psycopg://devspell:devspell123@localhost:5433/devspell"
     database_pool_size: int = 5
     database_max_overflow: int = 10
+
 
     # Configuración de Pydantic
     model_config = SettingsConfigDict(

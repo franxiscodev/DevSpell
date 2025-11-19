@@ -9,48 +9,21 @@ from passlib.context import CryptContext
 
 from src.core.config import settings
 
-# Configuración de hashing con argon2 (más moderno que bcrypt)
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Verifica que un password en texto plano coincida con el hash.
-
-    Args:
-        plain_password: Password en texto plano
-        hashed_password: Password hasheado
-
-    Returns:
-        True si coinciden, False si no
-    """
+    """Verifica que un password en texto plano coincida con el hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
-    """
-    Genera un hash seguro del password usando argon2.
-
-    Args:
-        password: Password en texto plano
-
-    Returns:
-        Password hasheado con argon2
-    """
+    """Genera un hash seguro del password usando argon2."""
     return pwd_context.hash(password)
 
 
 def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
-    """
-    Crea un token JWT de acceso.
-
-    Args:
-        data: Datos a incluir en el token (normalmente {"sub": user_id})
-        expires_delta: Tiempo de expiración personalizado
-
-    Returns:
-        Token JWT firmado
-    """
+    """Crea un token JWT de acceso."""
     to_encode = data.copy()
 
     if expires_delta:
@@ -71,15 +44,7 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
 
 
 def decode_access_token(token: str) -> dict[str, Any] | None:
-    """
-    Decodifica y verifica un token JWT.
-
-    Args:
-        token: Token JWT a decodificar
-
-    Returns:
-        Payload del token si es válido, None si no
-    """
+    """Decodifica y verifica un token JWT."""
     try:
         payload = jwt.decode(
             token,

@@ -15,6 +15,8 @@ from src.core.config import settings
 # Importar TODOS los modelos para que Alembic los detecte
 from src.auth.models import User  # ← Importante: importar modelos aquí
 from src.models.database import Analysis
+from src.projects.models import Project
+
 
 # this is the Alembic Config object
 config = context.config

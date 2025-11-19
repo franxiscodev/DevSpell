@@ -1,0 +1,4 @@
+
+# Claude local config
+.claude/
+docker-compose.yml

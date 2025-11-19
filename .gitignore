@@ -15,6 +15,3 @@ node_modules/
 # Claude Code (VSCode extension)
 .claude/
 **/.claude/
-
-# PyCharm
-.idea/

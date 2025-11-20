@@ -243,6 +243,187 @@ npm run dev
    - Check frontend terminal for compilation success
    - Test in browser before committing
 
+## Git Workflow (Gitflow Strategy)
+
+### Branch Structure
+
+```
+main (production)
+  ↑
+develop (integration/staging)
+  ↑
+feature/* | fix/* | hotfix/* | release/*
+```
+
+### Naming Conventions
+
+**Feature branches** (new functionality):
+```bash
+feature/descriptive-name
+# Examples:
+feature/frontend-auth
+feature/code-analysis-ui
+feature/user-dashboard
+```
+
+**Fix branches** (bugs in develop):
+```bash
+fix/descriptive-problem
+# Examples:
+fix/login-validation-error
+fix/database-connection-timeout
+```
+
+**Hotfix branches** (urgent production fixes):
+```bash
+hotfix/critical-description
+# Examples:
+hotfix/security-jwt-vulnerability
+hotfix/database-crash
+```
+
+**Release branches**:
+```bash
+release/v0.2.0
+release/v1.0.0-beta
+```
+
+### Standard Workflow
+
+**Creating a new feature**:
+```bash
+# 1. Start from updated develop
+git checkout develop
+git pull origin develop
+
+# 2. Create feature branch
+git checkout -b feature/new-functionality
+
+# 3. Work and commit
+git add .
+git commit -m "feat: description"
+
+# 4. Push and create PR to develop
+git push -u origin feature/new-functionality
+gh pr create --base develop --head feature/new-functionality \
+  --title "feat: Title" \
+  --body "Description"
+
+# 5. After PR merge, cleanup
+git checkout develop
+git pull origin develop
+git branch -d feature/new-functionality
+git push origin --delete feature/new-functionality
+```
+
+**Creating a release**:
+```bash
+# 1. Create release branch from develop
+git checkout develop
+git pull origin develop
+git checkout -b release/v0.2.0
+
+# 2. Final adjustments (version bumps, changelog)
+# Update version in pyproject.toml and package.json
+
+# 3. Merge to main and tag
+git checkout main
+git merge release/v0.2.0
+git tag -a v0.2.0 -m "Release version 0.2.0"
+git push origin main --tags
+
+# 4. Merge back to develop
+git checkout develop
+git merge release/v0.2.0
+git push origin develop
+
+# 5. Delete release branch
+git branch -d release/v0.2.0
+```
+
+**Emergency hotfix**:
+```bash
+# 1. Create from main
+git checkout main
+git pull origin main
+git checkout -b hotfix/critical-fix
+
+# 2. Fix and test
+git commit -m "hotfix: description"
+
+# 3. Merge to main
+git checkout main
+git merge hotfix/critical-fix
+git tag -a v0.1.1 -m "Hotfix v0.1.1"
+git push origin main --tags
+
+# 4. Merge to develop
+git checkout develop
+git merge hotfix/critical-fix
+git push origin develop
+
+# 5. Cleanup
+git branch -d hotfix/critical-fix
+```
+
+### Commit Message Conventions
+
+Follow Conventional Commits:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types**:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation only
+- `style`: Formatting, missing semicolons, etc.
+- `refactor`: Code change that neither fixes a bug nor adds a feature
+- `perf`: Performance improvement
+- `test`: Adding missing tests
+- `chore`: Maintenance tasks
+
+**Examples**:
+```bash
+feat(auth): implement JWT authentication
+fix(api): resolve database connection timeout
+docs: update README with setup instructions
+refactor(analyzer): simplify complexity calculation
+```
+
+### GitHub CLI Integration
+
+**Using `gh` CLI** (already authenticated):
+```bash
+# View PRs
+gh pr list
+gh pr view 8
+
+# Create PR
+gh pr create --base develop --head feature/my-feature
+
+# Merge PR
+gh pr merge 8 --squash
+
+# Check CI status
+gh pr checks 8
+
+# View repo status
+gh repo view
+```
+
+### MCP GitHub Integration
+
+**Configured**: GitHub MCP server is active and connected
+- Scope: `repo`, `read:org`, `workflow`
+- Authentication: Via `gh` CLI token
+- Can interact with GitHub directly through Claude Code
+
 ## Current State (feature/frontend-auth branch)
 
 **Completed**:

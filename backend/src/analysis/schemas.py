@@ -28,7 +28,7 @@ class AnalysisCreate(BaseModel):
     num_functions: int = Field(..., ge=0)
     num_classes: int = Field(..., ge=0)
     num_imports: int = Field(..., ge=0)
-    functions_data: Optional[dict] = Field(
+    functions_data: Optional[list | dict] = Field(
         None,
         description="JSON con detalle de funciones"
     )

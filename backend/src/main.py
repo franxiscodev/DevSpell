@@ -9,8 +9,8 @@ from src.core.config import settings
 from src.core.logger import logger
 from src.api.routes import health, analyze
 from src.auth.router import router as auth_router
-
 from src.projects.router import router as projects_router
+from src.analysis.router import router as analysis_router
 
 
 @asynccontextmanager
@@ -59,6 +59,7 @@ def create_app() -> FastAPI:
     app.include_router(analyze.router, prefix="/api/v1")
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(projects_router, prefix="/api/v1")
+    app.include_router(analysis_router, prefix="/api/v1")
 
     return app
 

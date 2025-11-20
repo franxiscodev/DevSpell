@@ -75,12 +75,18 @@ export default function ProjectCard({ project, onEdit, onDelete }: ProjectCardPr
         )}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-100">
+      <div className="mt-4 pt-4 border-t border-gray-100 flex gap-4">
         <button
           onClick={() => router.push(`/projects/${project.id}/analyze`)}
           className="text-sm text-blue-600 hover:text-blue-800 font-medium"
         >
-          Ver análisis →
+          Analizar código →
+        </button>
+        <button
+          onClick={() => router.push(`/projects/${project.id}/history`)}
+          className="text-sm text-gray-600 hover:text-gray-800 font-medium"
+        >
+          Ver historial
         </button>
       </div>
     </div>

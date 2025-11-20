@@ -5,7 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 import { authApi } from '@/lib/api/auth';
 import { projectsApi } from '@/lib/api/projects';
 import { analyzerApi } from '@/lib/api/analyzer';
-import type { Project, AnalysisResponse } from '@/types';
+import { analysisHistoryApi } from '@/lib/api/analysisHistory';
+import type { Project, AnalysisResponse, AnalysisCreate } from '@/types';
 import CodeEditor from '@/components/analyzer/CodeEditor';
 import AnalysisResults from '@/components/analyzer/AnalysisResults';
 
@@ -19,6 +20,9 @@ export default function AnalyzePage() {
   const [results, setResults] = useState<AnalysisResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [analysisName, setAnalysisName] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -69,6 +73,41 @@ export default function AnalyzePage() {
     setCode('');
     setResults(null);
     setError('');
+  };
+
+  const handleSaveAnalysis = async () => {
+    if (!results || !code.trim()) {
+      setError('No hay resultados para guardar');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+
+    try {
+      const analysisData: AnalysisCreate = {
+        name: analysisName.trim() || undefined,
+        code: code,
+        total_lines: results.total_lines,
+        code_lines: results.code_lines,
+        complexity: results.complexity,
+        num_functions: results.num_functions,
+        num_classes: results.num_classes,
+        num_imports: results.num_imports,
+        functions_data: results.functions,
+        project_id: projectId,
+      };
+
+      await analysisHistoryApi.saveAnalysis(analysisData);
+      setShowSaveModal(false);
+      setAnalysisName('');
+      alert('Análisis guardado exitosamente');
+    } catch (err: any) {
+      setError(err.message || 'Error al guardar el análisis');
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -165,9 +204,26 @@ def fibonacci(n):
           {/* Results Section */}
           {results && (
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Resultados del Análisis
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Resultados del Análisis
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => router.push(`/projects/${projectId}/history`)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    Ver historial
+                  </button>
+                  <button
+                    onClick={() => setShowSaveModal(true)}
+                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                    disabled={saving}
+                  >
+                    💾 Guardar Análisis
+                  </button>
+                </div>
+              </div>
               <AnalysisResults results={results} />
             </div>
           )}
@@ -185,6 +241,52 @@ def fibonacci(n):
           )}
         </div>
       </main>
+
+      {/* Modal para guardar análisis */}
+      {showSaveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Guardar Análisis
+            </h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre (opcional)
+              </label>
+              <input
+                type="text"
+                value={analysisName}
+                onChange={(e) => setAnalysisName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Ej: Análisis inicial, Versión optimizada..."
+                disabled={saving}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Si no ingresas un nombre, se usará la fecha actual
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowSaveModal(false);
+                  setAnalysisName('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveAnalysis}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:bg-green-400"
+                disabled={saving}
+              >
+                {saving ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

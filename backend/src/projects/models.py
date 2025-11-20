@@ -71,5 +71,11 @@ class Project(Base):
         lazy="joined"
     )
 
+    analyses: Mapped[list["Analysis"]] = relationship(
+        "Analysis",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
     def __repr__(self) -> str:
         return f"<Project {self.name} (owner: {self.owner_id})>"

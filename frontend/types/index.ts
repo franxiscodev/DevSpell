@@ -23,7 +23,7 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   access_token: string;
-  token_type: string;
+  token: string;
   user: User;
 }
 
@@ -47,7 +47,7 @@ export interface ProjectUpdate {
   description?: string;
 }
 
-// Tipos para Code Analysis
+// Tipos para Analysis
 export interface FunctionInfo {
   name: string;
   line_start: number;
@@ -60,7 +60,6 @@ export interface AnalyzeRequest {
 }
 
 export interface AnalysisResponse {
-  id?: string;
   total_lines: number;
   code_lines: number;
   complexity: number;
@@ -68,4 +67,49 @@ export interface AnalysisResponse {
   num_classes: number;
   num_imports: number;
   functions: FunctionInfo[];
+}
+
+// Tipos para Analysis guardados (historial)
+export interface SavedAnalysis {
+  id: string;
+  name: string | null;
+  total_lines: number;
+  code_lines: number;
+  complexity: number;
+  num_functions: number;
+  num_classes: number;
+  num_imports: number;
+  functions: FunctionInfo[];
+  project_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface SavedAnalysisDetail extends SavedAnalysis {
+  code: string;
+}
+
+export interface AnalysisCreate {
+  name?: string;
+  code: string;
+  total_lines: number;
+  code_lines: number;
+  complexity: number;
+  num_functions: number;
+  num_classes: number;
+  num_imports: number;
+  functions_data?: any;
+  project_id: string;
+}
+
+export interface AnalysisCompare {
+  analysis1: SavedAnalysis;
+  analysis2: SavedAnalysis;
+  differences: {
+    code_lines_diff: number;
+    complexity_diff: number;
+    num_functions_diff: number;
+    num_classes_diff: number;
+    num_imports_diff: number;
+  };
 }

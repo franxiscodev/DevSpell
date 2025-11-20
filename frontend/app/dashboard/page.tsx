@@ -3,12 +3,19 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api/auth';
-import type { User } from '@/types';
+import { projectsApi } from '@/lib/api/projects';
+import type { User, Project, ProjectCreate } from '@/types';
+import ProjectCard from '@/components/projects/ProjectCard';
+import ProjectModal from '@/components/projects/ProjectModal';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
 
   useEffect(() => {
     // Verificar autenticación
@@ -23,11 +30,58 @@ export default function DashboardPage() {
       setUser(storedUser);
     }
     setLoading(false);
+
+    // Cargar proyectos
+    loadProjects();
   }, [router]);
+
+  const loadProjects = async () => {
+    setLoadingProjects(true);
+    try {
+      const data = await projectsApi.getAll();
+      setProjects(data);
+    } catch (error) {
+      console.error('Error al cargar proyectos:', error);
+    } finally {
+      setLoadingProjects(false);
+    }
+  };
 
   const handleLogout = () => {
     authApi.logout();
     router.push('/login');
+  };
+
+  const handleCreateProject = async (data: ProjectCreate) => {
+    await projectsApi.create(data);
+    await loadProjects();
+  };
+
+  const handleUpdateProject = async (data: ProjectCreate) => {
+    if (!editingProject) return;
+    await projectsApi.update(editingProject.id, data);
+    await loadProjects();
+    setEditingProject(null);
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    await projectsApi.delete(projectId);
+    await loadProjects();
+  };
+
+  const openCreateModal = () => {
+    setEditingProject(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (project: Project) => {
+    setEditingProject(project);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingProject(null);
   };
 
   if (loading) {
@@ -73,14 +127,16 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Proyectos
             </h3>
-            <p className="text-3xl font-bold text-blue-600 mb-2">0</p>
-            <p className="text-sm text-gray-600">Próximamente</p>
+            <p className="text-3xl font-bold text-blue-600 mb-2">
+              {loadingProjects ? '...' : projects.length}
+            </p>
+            <p className="text-sm text-gray-600">Total de proyectos</p>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -99,7 +155,55 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-600">Próximamente</p>
           </div>
         </div>
+
+        {/* Projects Section */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-2xl font-bold text-gray-900">Mis Proyectos</h3>
+            <button
+              onClick={openCreateModal}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              + Nuevo Proyecto
+            </button>
+          </div>
+
+          {loadingProjects ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">Cargando proyectos...</p>
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="bg-white p-12 rounded-lg shadow-sm border border-gray-200 text-center">
+              <p className="text-gray-600 mb-4">No tienes proyectos aún</p>
+              <button
+                onClick={openCreateModal}
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Crear tu primer proyecto →
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onEdit={openEditModal}
+                  onDelete={handleDeleteProject}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </main>
+
+      {/* Modal */}
+      <ProjectModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSubmit={editingProject ? handleUpdateProject : handleCreateProject}
+        project={editingProject}
+      />
     </div>
   );
 }

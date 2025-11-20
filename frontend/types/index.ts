@@ -46,3 +46,26 @@ export interface ProjectUpdate {
   name?: string;
   description?: string;
 }
+
+// Tipos para Code Analysis
+export interface FunctionInfo {
+  name: string;
+  line_start: number;
+  line_end: number;
+  complexity: number;
+}
+
+export interface AnalyzeRequest {
+  code: string;
+}
+
+export interface AnalysisResponse {
+  id?: string;
+  total_lines: number;
+  code_lines: number;
+  complexity: number;
+  num_functions: number;
+  num_classes: number;
+  num_imports: number;
+  functions: FunctionInfo[];
+}

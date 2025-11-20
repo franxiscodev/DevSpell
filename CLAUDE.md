@@ -243,6 +243,43 @@ npm run dev
    - Check frontend terminal for compilation success
    - Test in browser before committing
 
+### Screenshots and Visual Communication
+
+**IMPORTANT**: Use screenshots for visual feedback, UI reviews, and error debugging.
+
+**Workflow for Screenshots**:
+1. Take screenshot (Windows: `Win + Shift + S`)
+2. Save in `temp/` folder with **descriptive name**
+3. Ask Claude to analyze it
+
+**Naming Convention for Screenshots**:
+```
+temp/
+├── error-dashboard-loading.png        # Error screenshots
+├── ui-login-form-mobile.png          # UI/design reviews
+├── bug-projects-not-showing.png       # Bug reports
+├── comparison-before-after.png        # Comparisons
+└── feature-new-modal-design.png      # Feature proposals
+```
+
+**Example Usage**:
+```
+"Analiza temp/error-dashboard-loading.png y dime qué está causando el error"
+"Revisa temp/ui-login-form-mobile.png y sugiere mejoras de UX"
+"Compara temp/comparison-before-after.png y valida los cambios"
+```
+
+**Supported Formats**: PNG, JPG, JPEG, WebP
+
+**Benefits**:
+- ✅ No need to copy-paste error messages
+- ✅ Claude can see exact visual layout/styling
+- ✅ Faster debugging with console errors visible
+- ✅ Better UI/UX feedback
+- ✅ Screenshots are git-ignored (not committed)
+
+**Note**: The `temp/` folder is git-ignored, so screenshots won't be committed to the repository.
+
 ## Git Workflow (Gitflow Strategy)
 
 ### Branch Structure

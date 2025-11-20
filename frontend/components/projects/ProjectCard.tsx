@@ -2,6 +2,7 @@
 
 import type { Project } from '@/types';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ProjectCardProps {
   project: Project;
@@ -10,6 +11,7 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
+  const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -74,7 +76,10 @@ export default function ProjectCard({ project, onEdit, onDelete }: ProjectCardPr
       </div>
 
       <div className="mt-4 pt-4 border-t border-gray-100">
-        <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+        <button
+          onClick={() => router.push(`/projects/${project.id}/analyze`)}
+          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+        >
           Ver análisis →
         </button>
       </div>

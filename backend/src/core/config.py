@@ -36,6 +36,13 @@ class Settings(BaseSettings):
     # Anthropic API
     anthropic_api_key: str = ""
 
+    # AI Configuration
+    ai_provider: str = "ollama"
+    ollama_base_url: str = "http://ollama:11434"
+    ollama_model: str = "deepseek-coder:1.3b"
+    ollama_timeout: int = 60
+    gemini_api_key: str = ""  # Para futuro
+
     # Autenticación JWT
     secret_key: str
     algorithm: str = "HS256"

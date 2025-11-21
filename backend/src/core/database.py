@@ -18,10 +18,10 @@ class Base(DeclarativeBase):
 
 # Engine síncrono (para Alembic migrations)
 sync_engine = create_engine(
-    settings.database_url,
+    settings.sync_database_url,
     pool_size=settings.database_pool_size,
     max_overflow=settings.database_max_overflow,
-    echo=settings.debug,
+    echo=False,  # Deshabilitado temporalmente para debug
 )
 
 # Session maker síncrona
@@ -32,16 +32,11 @@ SessionLocal = sessionmaker(
 )
 
 # Engine asíncrono (para FastAPI)
-# Convertir postgresql:// a postgresql+asyncpg://
-async_database_url = settings.database_url.replace(
-    "postgresql://", "postgresql+asyncpg://"
-)
-
 async_engine = create_async_engine(
-    async_database_url,
+    settings.database_url,
     pool_size=settings.database_pool_size,
     max_overflow=settings.database_max_overflow,
-    echo=settings.debug,
+    echo=False,  # Deshabilitado temporalmente para debug
 )
 
 # Session maker asíncrona
@@ -55,10 +50,10 @@ AsyncSessionLocal = async_sessionmaker(
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     Dependency para obtener sesión de base de datos.
-    
+
     Yields:
         Sesión de SQLAlchemy
-        
+
     Example:
         @router.get("/items")
         async def get_items(db: AsyncSession = Depends(get_db)):
@@ -81,7 +76,7 @@ async def init_db() -> None:
     Se debe llamar al startup de la aplicación.
     """
     logger.info("🔌 Conectando a base de datos...")
-    
+
     # Verificar conexión
     try:
         async with async_engine.begin() as conn:

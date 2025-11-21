@@ -15,3 +15,10 @@ node_modules/
 # Claude Code (VSCode extension)
 .claude/
 **/.claude/
+
+# -----------------------------------------------------------------------------
+# Archivos Temporales
+# -----------------------------------------------------------------------------
+# Carpeta para capturas de pantalla y archivos temporales
+temp/
+*.tmp

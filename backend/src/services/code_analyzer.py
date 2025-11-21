@@ -63,7 +63,30 @@ class CodeAnalyzer:
         try:
             return ast.parse(self.code)
         except SyntaxError as e:
-            raise CodeAnalysisError(f"Error de sintaxis en línea {e.lineno}: {e.msg}")
+            # Mensajes amigables para errores comunes
+            error_msg = e.msg.lower() if e.msg else ""
+
+            if "indent" in error_msg or "indentation" in error_msg:
+                friendly_msg = (
+                    f"❌ Error de indentación en línea {e.lineno}\n\n"
+                    f"💡 Consejo: Verifica que todas las líneas de código usen espacios (no tabs) "
+                    f"y que la indentación sea consistente.\n"
+                    f"Las funciones deben comenzar sin espacios al inicio de la línea."
+                )
+            elif "invalid syntax" in error_msg:
+                friendly_msg = (
+                    f"❌ Sintaxis inválida en línea {e.lineno}\n\n"
+                    f"💡 Consejo: Revisa paréntesis, comillas o palabras clave cerca de esta línea."
+                )
+            elif "unexpected eof" in error_msg:
+                friendly_msg = (
+                    f"❌ Fin de archivo inesperado\n\n"
+                    f"💡 Consejo: Puede que falte cerrar paréntesis, corchetes o comillas."
+                )
+            else:
+                friendly_msg = f"❌ Error de sintaxis en línea {e.lineno}: {e.msg}"
+
+            raise CodeAnalysisError(friendly_msg)
 
     def extract_functions(self, tree: ast.Module) -> list[FunctionInfo]:
         """

@@ -2,3 +2,7 @@
 # Claude local config
 .claude/
 docker-compose.yml
+
+# Testing temporal scripts
+test_db.py
+test_*.py

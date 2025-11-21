@@ -24,6 +24,17 @@ export class ApiClient {
     return headers;
   }
 
+  // Manejo centralizado de sesión expirada
+  private handleUnauthorized(): void {
+    if (typeof window !== 'undefined') {
+      // Limpiar sesión
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      // Redirigir a login (fuerza reload completo)
+      window.location.href = '/login';
+    }
+  }
+
   async get<T>(endpoint: string): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'GET',
@@ -31,6 +42,10 @@ export class ApiClient {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        this.handleUnauthorized();
+        throw new Error('401 Unauthorized');
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -45,8 +60,18 @@ export class ApiClient {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        this.handleUnauthorized();
+        throw new Error('401 Unauthorized');
+      }
       const error = await response.json();
-      throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+      // Log full error for debugging
+      console.error('API Error:', error);
+      // Handle validation errors (array) vs single errors (string)
+      const message = Array.isArray(error.detail)
+        ? error.detail.map((e: any) => `${e.loc.join('.')}: ${e.msg}`).join(', ')
+        : error.detail || `HTTP error! status: ${response.status}`;
+      throw new Error(message);
     }
 
     return response.json();
@@ -60,6 +85,10 @@ export class ApiClient {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        this.handleUnauthorized();
+        throw new Error('401 Unauthorized');
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -73,6 +102,10 @@ export class ApiClient {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        this.handleUnauthorized();
+        throw new Error('401 Unauthorized');
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
   }

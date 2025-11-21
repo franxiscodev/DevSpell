@@ -7,6 +7,7 @@ import { projectsApi } from '@/lib/api/projects';
 import type { User, Project, ProjectCreate } from '@/types';
 import ProjectCard from '@/components/projects/ProjectCard';
 import ProjectModal from '@/components/projects/ProjectModal';
+import Navbar from '@/components/layout/Navbar';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -40,16 +41,12 @@ export default function DashboardPage() {
     try {
       const data = await projectsApi.getAll();
       setProjects(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar proyectos:', error);
+      // El ApiClient ya maneja automáticamente los errores 401
     } finally {
       setLoadingProjects(false);
     }
-  };
-
-  const handleLogout = () => {
-    authApi.logout();
-    router.push('/login');
   };
 
   const handleCreateProject = async (data: ProjectCreate) => {
@@ -94,27 +91,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">DevSpell</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700">
-                Hola, <span className="font-medium">{user?.username}</span>
-              </span>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Cerrar sesión
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar title="DevSpell" />
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

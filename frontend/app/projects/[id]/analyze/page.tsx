@@ -9,6 +9,8 @@ import { analysisHistoryApi } from '@/lib/api/analysisHistory';
 import type { Project, AnalysisResponse, AnalysisCreate } from '@/types';
 import CodeEditor from '@/components/analyzer/CodeEditor';
 import AnalysisResults from '@/components/analyzer/AnalysisResults';
+import Toast from '@/components/ui/Toast';
+import Navbar from '@/components/layout/Navbar';
 
 export default function AnalyzePage() {
   const router = useRouter();
@@ -24,6 +26,7 @@ export default function AnalyzePage() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [analysisName, setAnalysisName] = useState('');
   const [error, setError] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     // Verificar autenticación
@@ -101,9 +104,10 @@ export default function AnalyzePage() {
       await analysisHistoryApi.saveAnalysis(analysisData);
       setShowSaveModal(false);
       setAnalysisName('');
-      alert('Análisis guardado exitosamente');
+      setToast({ message: 'Análisis guardado exitosamente', type: 'success' });
     } catch (err: any) {
       setError(err.message || 'Error al guardar el análisis');
+      setToast({ message: err.message || 'Error al guardar el análisis', type: 'error' });
       console.error(err);
     } finally {
       setSaving(false);
@@ -136,17 +140,13 @@ export default function AnalyzePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navbar title={project.name} showBackButton={true} />
+
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="text-blue-600 hover:text-blue-800 text-sm mb-2"
-          >
-            ← Volver al dashboard
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-          <p className="text-gray-600 mt-1">Analizar Código Python</p>
+          <h1 className="text-3xl font-bold text-gray-900">Analizar Código Python</h1>
+          <p className="text-gray-600 mt-1">Escribe o pega tu código para analizar</p>
         </div>
       </div>
 
@@ -286,6 +286,15 @@ def fibonacci(n):
             </div>
           </div>
         </div>
+      )}
+
+      {/* Toast notifications */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   );

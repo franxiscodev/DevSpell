@@ -5,6 +5,9 @@ import { useRouter, useParams } from 'next/navigation';
 import { analysisHistoryApi } from '@/lib/api/analysisHistory';
 import { projectsApi } from '@/lib/api/projects';
 import type { SavedAnalysis, Project } from '@/types';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import Toast from '@/components/ui/Toast';
+import Navbar from '@/components/layout/Navbar';
 
 export default function AnalysisHistoryPage() {
   const router = useRouter();
@@ -15,6 +18,8 @@ export default function AnalysisHistoryPage() {
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -41,15 +46,14 @@ export default function AnalysisHistoryPage() {
   };
 
   const handleDelete = async (analysisId: string) => {
-    if (!confirm('¿Estás seguro de eliminar este análisis?')) {
-      return;
-    }
-
     try {
       await analysisHistoryApi.deleteAnalysis(analysisId);
+      setDeleteConfirm(null);
+      setToast({ message: 'Análisis eliminado exitosamente', type: 'success' });
       await loadData(); // Recargar lista
     } catch (err: any) {
-      alert('Error al eliminar análisis: ' + err.message);
+      setDeleteConfirm(null);
+      setToast({ message: 'Error al eliminar análisis: ' + err.message, type: 'error' });
     }
   };
 
@@ -91,16 +95,11 @@ export default function AnalysisHistoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navbar title={project?.name || 'Historial'} showBackButton={true} />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-2"
-          >
-            ← Volver
-          </button>
-
           <h1 className="text-3xl font-bold text-gray-900">
             Historial de Análisis
           </h1>
@@ -177,7 +176,7 @@ export default function AnalysisHistoryPage() {
                       Ver detalle
                     </button>
                     <button
-                      onClick={() => handleDelete(analysis.id)}
+                      onClick={() => setDeleteConfirm(analysis.id)}
                       className="text-red-600 hover:text-red-800 text-sm font-medium"
                     >
                       Eliminar
@@ -189,6 +188,28 @@ export default function AnalysisHistoryPage() {
           </div>
         )}
       </div>
+
+      {/* Confirm dialog */}
+      {deleteConfirm && (
+        <ConfirmDialog
+          title="Eliminar Análisis"
+          message="¿Estás seguro de que deseas eliminar este análisis? Esta acción no se puede deshacer."
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          type="danger"
+          onConfirm={() => handleDelete(deleteConfirm)}
+          onCancel={() => setDeleteConfirm(null)}
+        />
+      )}
+
+      {/* Toast notifications */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

@@ -58,7 +58,7 @@ class Analysis(Base):
     num_imports: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # Datos de funciones (JSON)
-    functions_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    functions_data: Mapped[list | dict | None] = mapped_column(JSON, nullable=True)
 
     # Foreign Keys
     project_id: Mapped[str] = mapped_column(

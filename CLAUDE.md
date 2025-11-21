@@ -461,23 +461,198 @@ gh repo view
 - Authentication: Via `gh` CLI token
 - Can interact with GitHub directly through Claude Code
 
-## Current State (feature/frontend-auth branch)
+## AI System (Ollama + DeepSeek-Coder)
 
-**Completed**:
-- JWT authentication (register, login, /me endpoint)
-- Projects CRUD with ownership validation
-- Code analysis engine (AST-based, cyclomatic complexity)
-- Frontend auth flow (login/register/dashboard)
-- PostgreSQL with 5 migrations applied
-- Docker Compose environment
+**Status**: ✅ Fully implemented and operational (v0.2.0)
 
-**In Progress/Next**:
-- Connect dashboard to real projects data
-- Analysis history per project
-- Claude API integration for AI suggestions
+### Overview
+
+DevSpell integrates a local AI system using Ollama with the DeepSeek-Coder 1.3b model for code analysis and suggestions. The system is 100% free, runs locally, and ensures complete privacy.
+
+### Architecture
+
+```
+User Code → Backend API → Ollama Provider → DeepSeek-Coder Model → AI Suggestions
+                ↓
+         Database (optional: save with analysis)
+```
+
+**Backend Components**:
+- `src/services/ai/base.py` - AIProvider interface
+- `src/services/ai/ollama_provider.py` - Ollama client with aiohttp
+- `src/services/ai/prompts.py` - Spanish prompts with technical terms in English
+- `src/api/routes/ai.py` - 3 protected endpoints (JWT required)
+
+**Frontend Components**:
+- `lib/api/ai.ts` - TypeScript client for AI endpoints
+- `components/ai/SuggestionsPanel.tsx` - UI for displaying AI suggestions
+
+### Endpoints
+
+All endpoints require JWT authentication:
+
+1. **POST /api/v1/ai/suggestions**
+   - Input: Code + analysis metrics (complexity, functions, lines)
+   - Output: 2-4 concrete improvement suggestions
+   - Language: Spanish with technical terms in English
+
+2. **POST /api/v1/ai/explain**
+   - Input: Function code + function name
+   - Output: Detailed explanation of what the function does
+
+3. **POST /api/v1/ai/optimize**
+   - Input: Original code
+   - Output: Optimized version with explanation
+
+### Configuration
+
+**Environment Variables** (`backend/.env`):
+```env
+# AI Provider
+AI_PROVIDER=ollama
+
+# Ollama URL (choose based on setup)
+OLLAMA_BASE_URL=http://localhost:11434      # When backend runs outside Docker
+# OLLAMA_BASE_URL=http://ollama:11434       # When backend runs inside Docker
+
+# Model and timeout
+OLLAMA_MODEL=deepseek-coder:1.3b
+OLLAMA_TIMEOUT=60
+```
+
+**Docker Service** (`backend/docker-compose.yml`):
+```yaml
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: devspell-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    networks:
+      - devspell_network
+    restart: unless-stopped
+```
+
+### Setup Instructions
+
+**First-time setup**:
+```bash
+# 1. Start Ollama service
+cd backend
+docker-compose up -d ollama
+
+# 2. Download model (~800MB)
+docker exec -it devspell-ollama ollama pull deepseek-coder:1.3b
+
+# 3. Verify model
+docker exec -it devspell-ollama ollama list
+# Should show: deepseek-coder:1.3b
+
+# 4. Test connection
+curl http://localhost:11434/api/tags
+# Should return JSON with model info
+```
+
+**Daily usage**:
+```bash
+# Ollama starts automatically with docker-compose up -d
+# No additional steps needed
+```
+
+### Frontend Integration
+
+**Usage Flow**:
+1. User analyzes Python code
+2. Results show metrics (complexity, functions, etc.)
+3. User clicks "Obtener sugerencias" button
+4. Frontend calls `/api/v1/ai/suggestions` with code + metrics
+5. AI generates suggestions (5-15 seconds first call, faster afterwards)
+6. Suggestions displayed in cards with modern UI
+
+**Features**:
+- Spanish explanations with technical terms in English
+- Numbered suggestions with individual cards
+- Loading states with spinner
+- Error handling with friendly messages
+- Hover effects for better UX
+
+### Performance
+
+**Resources**:
+- **Disk**: ~1GB (model + Docker volume)
+- **RAM**: 2-4GB during AI analysis
+- **CPU**: Variable, 5-15s first call (model "warms up"), then faster
+- **Network**: Only for downloading model (one-time)
+
+**Optimization Tips**:
+- First call is slower (model initialization)
+- Subsequent calls are much faster
+- Model stays loaded in memory for better performance
+- Restart Ollama if responses become slow: `docker-compose restart ollama`
+
+### Prompts
+
+Prompts are optimized for Spanish responses while maintaining technical accuracy:
+
+**Example Suggestion Prompt**:
+```
+Eres un experto en análisis de código Python. Analiza este código y proporciona sugerencias de mejora.
+
+CÓDIGO: [user code]
+MÉTRICAS: complexity, num_functions, code_lines
+
+Responde en ESPAÑOL pero mantén términos técnicos en inglés (type hints, memoization, etc.)
+```
+
+### Extensibility
+
+The system uses a **factory pattern** for easy extension:
+
+**Adding a new provider** (e.g., Gemini):
+1. Create `src/services/ai/gemini_provider.py` implementing `AIProvider`
+2. Update `get_ai_provider()` factory in `__init__.py`
+3. Add configuration variables to `.env`
+4. No changes needed in routes or frontend
+
+### Future Enhancements (Agendadas)
+
+- [ ] Save AI suggestions with analysis in database
+- [ ] Display saved suggestions in analysis detail page
+- [ ] Add Gemini as cloud backup provider (optional)
+- [ ] Code optimization with automatic refactoring
+- [ ] Security analysis suggestions
+- [ ] Performance bottleneck detection
+
+See `temp/SPRINT_FUTURO_AI_SUGGESTIONS.md` for detailed implementation plan.
+
+---
+
+## Current State (v0.2.0 - Released)
+
+**Completed Features**:
+- ✅ JWT authentication (register, login, /me endpoint)
+- ✅ Projects CRUD with ownership validation
+- ✅ Code analysis engine (AST-based, cyclomatic complexity)
+- ✅ Analysis history per project (save, list, detail)
+- ✅ **AI integration with Ollama + DeepSeek-Coder**
+- ✅ **AI suggestions in Spanish with technical terms**
+- ✅ **Code editor with line numbers**
+- ✅ **Improved error messages** (syntax errors with helpful tips)
+- ✅ Frontend auth flow (login/register/dashboard)
+- ✅ PostgreSQL with migrations
+- ✅ Docker Compose environment
+
+**Next Priorities**:
+- Save AI suggestions with analysis in database
 - Advanced metrics and reporting
+- Export analysis results (PDF, Markdown)
+- Comparison between analyses
 
 ## Troubleshooting
+
+### General Issues
 
 **"Database connection refused"**: Ensure PostgreSQL is running (`docker-compose up -d`) and check port 5433
 
@@ -490,3 +665,38 @@ gh repo view
 **Frontend can't reach API**: Verify CORS_ORIGINS in backend `.env` includes frontend URL
 
 **401 Unauthorized on protected endpoints**: Token may be expired (30min default) - re-login to get new token
+
+### AI System Issues
+
+**"Failed to connect to Ollama"**:
+- Check Ollama is running: `docker-compose ps | grep ollama`
+- Verify URL in `.env`: use `http://localhost:11434` when backend runs outside Docker
+- Test connection: `curl http://localhost:11434/api/tags`
+- Restart Ollama: `docker-compose restart ollama`
+
+**"Model not found"**:
+- Download model: `docker exec -it devspell-ollama ollama pull deepseek-coder:1.3b`
+- Verify model: `docker exec -it devspell-ollama ollama list`
+- Check model name in `.env`: `OLLAMA_MODEL=deepseek-coder:1.3b`
+
+**"Timeout error" or "Request too slow"**:
+- Increase timeout in `.env`: `OLLAMA_TIMEOUT=120`
+- Restart backend to apply changes
+- First call is always slower (model initialization)
+- Consider using smaller model if persistent: `tinyllama` (650MB)
+
+**"Ollama container unhealthy"**:
+- This is usually harmless - check if API responds: `curl http://localhost:11434/api/tags`
+- If API doesn't respond, restart: `docker-compose restart ollama`
+- Check logs: `docker-compose logs ollama`
+
+**AI suggestions in wrong language**:
+- Prompts are in Spanish by default (see `src/services/ai/prompts.py`)
+- Model might respond in English sometimes - this is normal for small models
+- Solution: Regenerate suggestions or adjust prompts for stricter language control
+
+**Suggestions not showing in frontend**:
+- Check browser console for errors (F12)
+- Verify backend endpoint responds: check `/api/v1/ai/suggestions` in Swagger docs
+- Ensure user is authenticated (JWT token present)
+- Check backend logs for AI service errors

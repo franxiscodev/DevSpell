@@ -46,6 +46,29 @@ services:
     networks:
       - devspell-network
 
+  # ---------------------------------------------------------------------------
+  # Ollama - Local AI Model Server
+  # ---------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: devspell-ollama
+    restart: unless-stopped
+
+    ports:
+      - "11434:11434"
+
+    volumes:
+      - ollama_models:/root/.ollama
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    networks:
+      - devspell-network
+
 # =============================================================================
 # Volumes
 # =============================================================================
@@ -53,6 +76,10 @@ volumes:
   postgres_data:
     driver: local
     name: devspell_postgres_data
+
+  ollama_models:
+    driver: local
+    name: devspell_ollama_models
 
 # =============================================================================
 # Networks

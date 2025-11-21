@@ -9,6 +9,7 @@ import { analysisHistoryApi } from '@/lib/api/analysisHistory';
 import type { Project, AnalysisResponse, AnalysisCreate } from '@/types';
 import CodeEditor from '@/components/analyzer/CodeEditor';
 import AnalysisResults from '@/components/analyzer/AnalysisResults';
+import SuggestionsPanel from '@/components/ai/SuggestionsPanel';
 import Toast from '@/components/ui/Toast';
 import Navbar from '@/components/layout/Navbar';
 
@@ -225,6 +226,18 @@ def fibonacci(n):
                 </div>
               </div>
               <AnalysisResults results={results} />
+
+              {/* AI Suggestions */}
+              <div className="mt-6">
+                <SuggestionsPanel
+                  code={code}
+                  analysis={{
+                    complexity: results.complexity,
+                    num_functions: results.num_functions,
+                    code_lines: results.code_lines,
+                  }}
+                />
+              </div>
             </div>
           )}
 
